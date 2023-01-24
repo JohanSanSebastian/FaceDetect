@@ -32,7 +32,8 @@ webcam = cv2.VideoCapture(0)
 
 # The program loops until it has 30 images of the face.
 count = 1
-while count < 30:
+while count < 60:
+    print(count)
     (_, im) = webcam.read()
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray, 1.3, 4)
