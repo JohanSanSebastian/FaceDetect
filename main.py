@@ -1,11 +1,11 @@
-# It helps in identifying the faces
 import cv2
 import numpy
 import os
+from datetime import datetime
 
 haar_file = 'haarcascade_frontalface_default.xml'
 datasets = 'datasets'
-print('Recognizing Faces...')
+print('Running ESAT...')
 
 def markAttendance(name):
     with open('Attendance.csv', 'r+') as f:
@@ -15,9 +15,9 @@ def markAttendance(name):
             entry = line.split(',')
             nameList.append(entry[0])
         if name not in nameList:
-            now= datetime.now()
-            dtString =now.strftime('%H:%M:%S')
-            f.writelines(f'\n{name},{dtString}')
+            now = datetime.now()
+            dtString = now.strftime('%H:%M:%S')
+            f.writelines(f'\n{name}, {dtString}')
 
 # Create a list of images and a list of corresponding names
 (images, labels, names, id) = ([], [], {}, 0)
@@ -33,16 +33,16 @@ for (subdirs, dirs, files) in os.walk(datasets):
         id += 1
 (width, height) = (130, 100)
 
-# Create a Numpy array from the two lists above
+# Creating a Numpy array from the two lists above
 (images, labels) = [numpy.array(lis) for lis in [images, labels]]
 
 # OpenCV trains a model from the images
-# NOTE FOR OpenCV2: add opencv-contrib-python to the requirements.txt file
 model = cv2.face.LBPHFaceRecognizer_create()
 model.train(images, labels)
 
 face_cascade = cv2.CascadeClassifier(haar_file)
 webcam = cv2.VideoCapture(0)
+
 while True:
     (_, im) = webcam.read()
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -56,15 +56,14 @@ while True:
         cv2.rectangle(im, (x, y), (x + w, y + h), (0, 92, 245), 3)
 
         if prediction[1] < 500:
-
-           cv2.putText(im, '% s - %.0f' %
-                       (names[prediction[0]], prediction[1]), (x-10, y-10),
-                       cv2.FONT_HERSHEY_PLAIN, 1, (0, 92, 245))
+            cv2.putText(im, '% s - %.0f' % (names[prediction[0]], prediction[1]), (x-10, y-10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 92, 245))
+            # print(names[prediction[0]])
+            if prediction[1] > 85:
+                markAttendance(names[prediction[0]])
         else:
-          cv2.putText(im, 'not recognized',
-                      (x-10, y-10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 92, 245))
+            cv2.putText(im, 'not recognized', (x-10, y-10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 92, 245))
 
-    cv2.imshow('OpenCV', im)
+    cv2.imshow('ESAT', im)
 
     key = cv2.waitKey(10)
     if key == 27:
